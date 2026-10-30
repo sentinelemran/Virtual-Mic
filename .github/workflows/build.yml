@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Unzip project
-        run: unzip -q VirtualSound.zip
+        run: unzip -q '*.zip'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -17,9 +17,10 @@ jobs:
         with:
           gradle-version: '7.6.4'
       - name: Build
-        working-directory: VirtualSound
-        run: gradle assembleDebug --no-daemon
+        run: |
+          cd "$(dirname "$(find . -name settings.gradle | head -1)")"
+          gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: VirtualSound-apk
-          path: VirtualSound/app/build/outputs/apk/debug/app-debug.apk
+          path: '**/app-debug.apk'
