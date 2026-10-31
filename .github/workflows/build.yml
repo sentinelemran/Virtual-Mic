@@ -2,20 +2,13 @@ name: Build APK
 on:
   push:
   workflow_dispatch:
-permissions:
-  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Unzip newest project zip
-        run: |
-          z=$(for f in *.zip; do echo "$(git log -1 --format=%ct -- "$f") $f"; done | sort -n | tail -1 | cut -d' ' -f2-)
-          echo "Using $z"
-          unzip -oq "$z"
+      - name: Unzip project
+        run: unzip -q VirtualSound.zip
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -24,17 +17,9 @@ jobs:
         with:
           gradle-version: '7.6.4'
       - name: Build
-        run: |
-          cd "$(dirname "$(find . -name settings.gradle | head -1)")"
-          gradle assembleDebug --no-daemon
-      - name: Collect APK
-        run: cp "$(find . -name app-debug.apk | head -1)" VirtualSound.apk
+        working-directory: VirtualSound
+        run: gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: VirtualSound-apk
-          path: VirtualSound.apk
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          name: Virtual Sound v${{ github.run_number }}
-          files: VirtualSound.apk
+          path: VirtualSound/app/build/outputs/apk/debug/app-debug.apk
